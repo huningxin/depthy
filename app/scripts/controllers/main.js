@@ -75,6 +75,14 @@ angular.module('depthyApp')
     });
   };
 
+  $scope.takePhoto = function() {
+    StateModal.showModal('takephoto', {
+      templateUrl: 'views/take-photo-modal.html',
+      windowClass: 'info-modal',
+      controller: 'TakePhotoModalCtrl',
+    });
+  };
+
   $scope.exportAnimationOptions = function(type) {
     var oldAnimate = depthy.viewer.animate;
     depthy.viewer.animate = true;

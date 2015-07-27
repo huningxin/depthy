@@ -108,6 +108,9 @@ angular.module('depthyApp', [
   .state('image.info', {
     url: '/info',
   })
+  .state('takephoto', {
+    url: '/info',
+  })
   .state('export', {
     url: '/export',
   })

@@ -28,6 +28,9 @@
           </p>
         </header>
         <article class="text-center">
+          <div class="button-open btn btn-lg btn-success center-block" ng-click="takePhoto()"><i class="icon" ng-class="depthy.isLoading() ? 'icon-loading' : 'icon-eye'"></i>Take photo</div>
+        </article>
+        <article class="text-center">
           <div class="button-open btn btn-lg btn-success center-block" ng-click="selectFile($event)"><i class="icon" ng-class="depthy.isLoading() ? 'icon-loading' : 'icon-open'"></i>Open photo</div>
         </article>
       </section>

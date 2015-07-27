@@ -1,0 +1,21 @@
+<div class="modal-header">
+  <h4 class="modal-title" ng-click="stopPreview(); $dismiss()"><i class="icon icon-back"></i>Take a photo</h4>
+</div>
+<div class="modal-body" >
+  <div class="text-center">
+    <div class="thumbnails-set margin-top-none">
+      <canvas id='preview' width='320' height='240' style='
+        width: 320px;
+        height: 240px;
+        border: 1px solid #FFFFFF;'></canvas>
+    </div>
+  </div>
+  <div class="text-center">
+    <button class="btn btn-success" ng-click="buttonClicked();">{{pause ? 'Re-take' : 'Take'}}</button>
+  </div>
+</div>
+<div class="modal-footer">
+  <!-- <button class="btn btn-success" ng-click="selectFile($event)"><i class="icon" ng-class="isDepthmapProcessing ? 'icon-loading' : 'icon-open'"></i>{{depthy.hasDepthmap() ? 'Change' : 'Open' }} depthmap</button> -->
+  <button class="btn btn-default" ng-click="stopPreview(); done(); $dismiss()">Done</button>
+</div>
+</span>
