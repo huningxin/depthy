@@ -74,6 +74,8 @@ Copyright (c) 2014 Rafał Lindemann. http://panrafal.github.com/depthy
 
     options = extend({}, defaultOptions, options || {});
 
+    var useDepthOfFieldBlurFilter = false;
+
     // PRIVATE FUNCTIONS
     function init() {
 
@@ -506,6 +508,7 @@ Copyright (c) 2014 Rafał Lindemann. http://panrafal.github.com/depthy
 
 
     var depthFiltersCache = {};
+    var depthOfFieldBlurFilter = null;
     function updateStage() {
       // combine image with depthmap
       var q = options.quality || quality.current;
@@ -520,12 +523,25 @@ Copyright (c) 2014 Rafał Lindemann. http://panrafal.github.com/depthy
         depthFilter.map = depthRender;
       }
 
+      if (useDepthOfFieldBlurFilter && !depthOfFieldBlurFilter) {
+        depthOfFieldBlurFilter = new PIXI.DepthOfFieldBlurFilter(depthRender);
+        depthOfFieldBlurFilter.max = 0.5;
+        depthOfFieldBlurFilter.min = 0.2;
+      }
+
+      if (useDepthOfFieldBlurFilter && depthOfFieldBlurFilter.map !== depthRender) {
+        depthOfFieldBlurFilter.map = depthRender;
+      }
+
       if (compoundSprite) {
         stage.removeChild(compoundSprite);
       }
 
       compoundSprite = new PIXI.Sprite(imageRender);
-      compoundSprite.filters= [depthFilter];
+      if (useDepthOfFieldBlurFilter)
+        compoundSprite.filters= [depthOfFieldBlurFilter, depthFilter];
+      else
+        compoundSprite.filters= [depthFilter];
 
       stage.addChild(compoundSprite);
 
@@ -711,6 +727,11 @@ Copyright (c) 2014 Rafał Lindemann. http://panrafal.github.com/depthy
     }
 
     // PUBLIC FUNCTIONS
+
+    this.useDepthOfFieldBlurFilter = function(use) {
+      useDepthOfFieldBlurFilter = use;
+      stageDirty = true;
+    }
 
     this.setOptions = function(newOptions) {
       for(var k in newOptions) {

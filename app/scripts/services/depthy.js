@@ -528,7 +528,13 @@ angular.module('depthyApp').provider('depthy', function depthy() {
       // sets proper image according to opened image and useOriginalImage setting
       refreshOpenedImage: function() {
         var opened = this.opened;
-        this.getViewer().setImage((depthy.useOriginalImage ? opened.originalSource : opened.imageSource) || opened.imageSource);
+        if (opened.originalSource) {
+          this.getViewer().setImage((depthy.useOriginalImage ? opened.originalSource : opened.imageSource) || opened.imageSource);
+          this.getViewer().useDepthOfFieldBlurFilter(false);
+        } else {
+          this.getViewer().setImage(opened.imageSource);
+          this.getViewer().useDepthOfFieldBlurFilter((depthy.useOriginalImage ? false : true));
+        }
         return this.getReadyPromise();
       },
 
@@ -689,7 +695,7 @@ angular.module('depthyApp').provider('depthy', function depthy() {
                           depthCanvasContext.putImageData(depthCanvasImageData, 0, 0);
                           _this.opened.imageSource = colorCanvas.toDataURL("image/jpeg", 1.0);
                           _this.opened.depthSource = depthCanvas.toDataURL("image/jpeg", 1.0);
-                          _this.opened.originalSource = colorCanvas.toDataURL("image/jpeg", 1.0);
+                          _this.opened.originalSource = null;
                           _this.getViewer().setDepthmap(_this.opened.depthSource);
                           _this.refreshOpenedImage();
                         });
