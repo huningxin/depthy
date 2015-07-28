@@ -620,6 +620,74 @@ angular.module('depthyApp').provider('depthy', function depthy() {
 
       },
 
+      loadDepthPhoto: function(photo) {
+        function ConvertDepthToRGBUsingHistogram(
+            depthImage, nearColor, farColor, rgbImage) {
+          var imageSize = 320 * 240;
+          for (var l = 0; l < imageSize; ++l) {
+            rgbImage[l * 4] = 0;
+            rgbImage[l * 4 + 1] = 0;
+            rgbImage[l * 4 + 2] = 0;
+            rgbImage[l * 4 + 3] = 255;
+          }
+          // Produce a cumulative histogram of depth values
+          var histogram = new Int32Array(256 * 256);
+          var imageSize = 320 * 240;
+          for (var i = 0; i < imageSize; ++i) {
+            if (depthImage[i]) {
+              ++histogram[depthImage[i]];
+            }
+          }
+          for (var j = 1; j < 256 * 256; ++j) {
+            histogram[j] += histogram[j - 1];
+          }
+
+          // Remap the cumulative histogram to the range 0..256
+          for (var k = 1; k < 256 * 256; k++) {
+            histogram[k] = (histogram[k] << 8) / histogram[256 * 256 - 1];
+          }
+
+          // Produce RGB image by using the histogram to interpolate between two colors
+          for (var l = 0; l < imageSize; ++l) {
+            if (depthImage[l]) { // For valid depth values (depth > 0)
+              // Use the histogram entry (in the range of 0..256) to interpolate between nearColor and
+              // farColor
+              var t = histogram[depthImage[l]];
+              rgbImage[l * 4] = ((256 - t) * nearColor[0] + t * farColor[0]) >> 8;
+              rgbImage[l * 4 + 1] = ((256 - t) * nearColor[1] + t * farColor[1]) >> 8;
+              rgbImage[l * 4 + 2] = ((256 - t) * nearColor[2] + t * farColor[2]) >> 8;
+              rgbImage[l * 4 + 3] = 255;
+            }
+          }
+        }
+
+        var colorCanvas = document.getElementById('color-canvas');
+        var colorCanvasContext = colorCanvas.getContext('2d');
+        var colorCanvasImageData = colorCanvasContext.createImageData(320, 240);
+
+        var depthCanvas = document.getElementById('depth-canvas');
+        var depthCanvasContext = depthCanvas.getContext('2d');
+        var depthCanvasImageData = depthCanvasContext.createImageData(320, 240);
+        var _this = this;
+        realsense.EnhancedPhotography.enhanceDepth(
+            photo, 'high').then(
+            function(photo) {
+              photo.getColorImage().then(
+                  function(colorImage) {
+                    colorCanvasImageData.data.set(colorImage.data);
+                    colorCanvasContext.putImageData(colorCanvasImageData, 0, 0);
+                    photo.getDepthImage().then(
+                        function(depthImage) {
+                          ConvertDepthToRGBUsingHistogram(
+                              depthImage.data, [0, 0, 0], [255, 255, 255], depthCanvasImageData.data);
+                          depthCanvasContext.putImageData(depthCanvasImageData, 0, 0);
+                          _this.getViewer().setImage(colorCanvas);
+                          _this.getViewer().setDepthmap(depthCanvas, false);
+                        });
+                });
+        });
+      },
+
 
       loadUrlDirectImage: function(url, isPng, openedInfo) {
         var opened = prepareImage({

@@ -332,6 +332,8 @@ Copyright (c) 2014 Rafał Lindemann. http://panrafal.github.com/depthy
         if (source) {
           if (source instanceof PIXI.RenderTexture) {
             current.texture = source;
+          } else if (source instanceof HTMLCanvasElement) {
+            current.texture = PIXI.Texture.fromCanvas(source, PIXI.scaleModes.LINEAR);
           } else {
             current.texture = PIXI.Texture.fromImage(source);
             current.url = source;

@@ -10,7 +10,7 @@ angular.module('depthyApp')
   var width = 320, height = 240;
   var preview_canvas, preview_context, preview_data;
   var ep;
-  var currentPhoto;
+  var takenPhoto;
 
   // wait for dom
   $timeout(function() {
@@ -44,8 +44,8 @@ angular.module('depthyApp')
         $scope.pause = true;
         ep.takeSnapShot().then(
           function(photo) {
-            currentPhoto = photo;
-            currentPhoto.getColorImage().then(
+            takenPhoto = photo;
+            takenPhoto.getColorImage().then(
                 function(image) {
                   preview_data.data.set(image.data);
                   preview_context.putImageData(image_data, 0, 0);
@@ -77,6 +77,7 @@ angular.module('depthyApp')
   };
 
   $scope.done = function() {
+    depthy.loadDepthPhoto(takenPhoto);
     console.log('done');
   }
 
