@@ -198,6 +198,8 @@ angular.module('depthyApp')
 
     if (drawer.isCanceled()) {
       // restore opened depthmap
+      if (!depthy.opened)
+        return;
       viewer.setDepthmap(depthy.opened.depthSource, depthy.opened.depthUsesAlpha);
     } else {
       if (drawer.isModified()) {

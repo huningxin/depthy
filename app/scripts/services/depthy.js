@@ -474,6 +474,8 @@ angular.module('depthyApp').provider('depthy', function depthy() {
         return this.getViewer().isReady();
       },
       isLoading: function() {
+        if (!this.opened)
+          return false;
         return !!this.opened.loading && Modernizr.webgl;
       },
       hasImage: function() {
@@ -483,12 +485,16 @@ angular.module('depthyApp').provider('depthy', function depthy() {
         return this.getViewer().hasDepthmap();
       },
       hasOriginalImage: function() {
+        if (!this.opened)
+          return false;
         return !!this.opened.originalSource;
       },
       hasCompleteImage: function() {
         return this.hasImage() && this.hasDepthmap();
       },
       getLoadError: function() {
+        if (!this.opened)
+          return "no opened";
         return this.opened.error;
       },
       // true when leftpane is incollapsible
@@ -681,8 +687,11 @@ angular.module('depthyApp').provider('depthy', function depthy() {
                           ConvertDepthToRGBUsingHistogram(
                               depthImage.data, [0, 0, 0], [255, 255, 255], depthCanvasImageData.data);
                           depthCanvasContext.putImageData(depthCanvasImageData, 0, 0);
-                          _this.getViewer().setImage(colorCanvas);
-                          _this.getViewer().setDepthmap(depthCanvas, false);
+                          _this.opened.imageSource = colorCanvas.toDataURL("image/jpeg", 1.0);
+                          _this.opened.depthSource = depthCanvas.toDataURL("image/jpeg", 1.0);
+                          _this.opened.originalSource = colorCanvas.toDataURL("image/jpeg", 1.0);
+                          _this.getViewer().setDepthmap(_this.opened.depthSource);
+                          _this.refreshOpenedImage();
                         });
                 });
         });
