@@ -52,6 +52,9 @@ Copyright (c) 2014 Rafał Lindemann. http://panrafal.github.com/depthy
 
       alwaysRender: false,
       pauseRender: false,
+
+      depthOfFieldMin: 0.0,
+      depthOfFieldMax: 1.0
     };
 
   var DepthyViewer = root.DepthyViewer = function(element, options) {
@@ -525,8 +528,11 @@ Copyright (c) 2014 Rafał Lindemann. http://panrafal.github.com/depthy
 
       if (useDepthOfFieldBlurFilter && !depthOfFieldBlurFilter) {
         depthOfFieldBlurFilter = new PIXI.DepthOfFieldBlurFilter(depthRender);
-        depthOfFieldBlurFilter.max = 0.5;
-        depthOfFieldBlurFilter.min = 0.2;
+      }
+
+      if (useDepthOfFieldBlurFilter) {
+        depthOfFieldBlurFilter.max = options.depthOfFieldMax;
+        depthOfFieldBlurFilter.min = options.depthOfFieldMin;
       }
 
       if (useDepthOfFieldBlurFilter && depthOfFieldBlurFilter.map !== depthRender) {
@@ -756,6 +762,9 @@ Copyright (c) 2014 Rafał Lindemann. http://panrafal.github.com/depthy
           case 'depthBlurSize':
             depth.renderDirty = true;
             break;
+          case 'depthOfFieldMin':
+          case 'depthOfFieldMax':
+            stageDirty = true;
           default:
             renderDirty = true;
         }
