@@ -634,8 +634,8 @@ angular.module('depthyApp').provider('depthy', function depthy() {
 
       loadDepthPhoto: function(photo) {
         function ConvertDepthToRGBUsingHistogram(
-            depthImage, nearColor, farColor, rgbImage) {
-          var imageSize = 320 * 240;
+            size, depthImage, nearColor, farColor, rgbImage) {
+          var imageSize = size;
           for (var l = 0; l < imageSize; ++l) {
             rgbImage[l * 4] = 0;
             rgbImage[l * 4 + 1] = 0;
@@ -644,7 +644,7 @@ angular.module('depthyApp').provider('depthy', function depthy() {
           }
           // Produce a cumulative histogram of depth values
           var histogram = new Int32Array(256 * 256);
-          var imageSize = 320 * 240;
+          var imageSize = size;
           for (var i = 0; i < imageSize; ++i) {
             if (depthImage[i]) {
               ++histogram[depthImage[i]];
@@ -673,34 +673,40 @@ angular.module('depthyApp').provider('depthy', function depthy() {
           }
         }
 
+        var width = 640;
+        var height = 480;
+
         var colorCanvas = document.getElementById('color-canvas');
         var colorCanvasContext = colorCanvas.getContext('2d');
-        var colorCanvasImageData = colorCanvasContext.createImageData(320, 240);
+        var colorCanvasImageData = colorCanvasContext.createImageData(width, height);
 
         var depthCanvas = document.getElementById('depth-canvas');
         var depthCanvasContext = depthCanvas.getContext('2d');
-        var depthCanvasImageData = depthCanvasContext.createImageData(320, 240);
+        var depthCanvasImageData = depthCanvasContext.createImageData(width, height);
         var _this = this;
-        realsense.EnhancedPhotography.enhanceDepth(
-            photo, 'high').then(
-            function(photo) {
-              photo.getColorImage().then(
-                  function(colorImage) {
-                    colorCanvasImageData.data.set(colorImage.data);
-                    colorCanvasContext.putImageData(colorCanvasImageData, 0, 0);
-                    photo.getDepthImage().then(
-                        function(depthImage) {
-                          ConvertDepthToRGBUsingHistogram(
-                              depthImage.data, [0, 0, 0], [255, 255, 255], depthCanvasImageData.data);
-                          depthCanvasContext.putImageData(depthCanvasImageData, 0, 0);
-                          _this.opened.imageSource = colorCanvas.toDataURL("image/jpeg", 1.0);
-                          _this.opened.depthSource = depthCanvas.toDataURL("image/jpeg", 1.0);
-                          _this.opened.originalSource = null;
-                          _this.getViewer().setDepthmap(_this.opened.depthSource);
-                          _this.refreshOpenedImage();
-                        });
-                });
-        });
+        realsense.EnhancedPhotography.depthResize(
+            photo, {width: width, height: height}).then( function(photo) {
+                realsense.EnhancedPhotography.enhanceDepth(
+                    photo, 'high').then(
+                        function(photo) {
+                          photo.getColorImage().then(
+                              function(colorImage) {
+                                colorCanvasImageData.data.set(colorImage.data);
+                                colorCanvasContext.putImageData(colorCanvasImageData, 0, 0);
+                                photo.getDepthImage().then(
+                                    function(depthImage) {
+                                      ConvertDepthToRGBUsingHistogram(
+                                          width*height, depthImage.data, [0, 0, 0], [255, 255, 255], depthCanvasImageData.data);
+                                      depthCanvasContext.putImageData(depthCanvasImageData, 0, 0);
+                                      _this.opened.imageSource = colorCanvas.toDataURL("image/jpeg", 1.0);
+                                      _this.opened.depthSource = depthCanvas.toDataURL("image/jpeg", 1.0);
+                                      _this.opened.originalSource = null;
+                                      _this.getViewer().setDepthmap(_this.opened.depthSource);
+                                      _this.refreshOpenedImage();
+                                    }, function(e) {console.log(e);});
+                              }, function(e) {console.log(e);});
+                        }, function(e) {console.log(e);});
+                }, function(e) {console.log(e);});
       },
 
 

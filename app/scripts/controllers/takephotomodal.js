@@ -7,7 +7,7 @@ angular.module('depthyApp')
   $scope.pause = false;
 
   var getting_image = false;
-  var width = 320, height = 240;
+  var width = 640, height = 480;
   var preview_canvas, preview_context, preview_data;
   var ep;
   var takenPhoto;
@@ -20,7 +20,9 @@ angular.module('depthyApp')
       preview_context = preview_canvas.getContext('2d');
       preview_data = preview_context.createImageData(width, height);
       ep = realsense.EnhancedPhotography;
-      ep.startPreview().then(function(e) { console.log(e); },
+      ep.startPreview({colorWidth:640, colorHeight:480, colorFramerate: 30.0,
+                       depthWidth:320, depthHeight:240, depthFramerate: 30.0
+      }).then(function(e) { console.log(e); },
                              function(e) { console.log(e); });
       ep.onpreview = function(e) {
         if (getting_image)
