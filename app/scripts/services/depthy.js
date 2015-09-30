@@ -634,8 +634,9 @@ angular.module('depthyApp').provider('depthy', function depthy() {
 
       loadDepthPhoto: function(photo) {
         function ConvertDepthToRGBUsingHistogram(
-            size, depthImage, nearColor, farColor, rgbImage) {
-          var imageSize = size;
+            depthImage, nearColor, farColor, rgbImage) {
+          var depthImageData = depthImage.data;
+          var imageSize = depthImage.width * depthImage.height;
           for (var l = 0; l < imageSize; ++l) {
             rgbImage[l * 4] = 0;
             rgbImage[l * 4 + 1] = 0;
@@ -644,10 +645,9 @@ angular.module('depthyApp').provider('depthy', function depthy() {
           }
           // Produce a cumulative histogram of depth values
           var histogram = new Int32Array(256 * 256);
-          var imageSize = size;
           for (var i = 0; i < imageSize; ++i) {
-            if (depthImage[i]) {
-              ++histogram[depthImage[i]];
+            if (depthImageData[i]) {
+              ++histogram[depthImageData[i]];
             }
           }
           for (var j = 1; j < 256 * 256; ++j) {
@@ -661,10 +661,10 @@ angular.module('depthyApp').provider('depthy', function depthy() {
 
           // Produce RGB image by using the histogram to interpolate between two colors
           for (var l = 0; l < imageSize; ++l) {
-            if (depthImage[l]) { // For valid depth values (depth > 0)
+            if (depthImageData[l]) { // For valid depth values (depth > 0)
               // Use the histogram entry (in the range of 0..256) to interpolate between nearColor and
               // farColor
-              var t = histogram[depthImage[l]];
+              var t = histogram[depthImageData[l]];
               rgbImage[l * 4] = ((256 - t) * nearColor[0] + t * farColor[0]) >> 8;
               rgbImage[l * 4 + 1] = ((256 - t) * nearColor[1] + t * farColor[1]) >> 8;
               rgbImage[l * 4 + 2] = ((256 - t) * nearColor[2] + t * farColor[2]) >> 8;
@@ -684,19 +684,21 @@ angular.module('depthyApp').provider('depthy', function depthy() {
         var depthCanvasContext = depthCanvas.getContext('2d');
         var depthCanvasImageData = depthCanvasContext.createImageData(width, height);
         var _this = this;
-        realsense.EnhancedPhotography.depthResize(
-            photo, {width: width, height: height}).then( function(photo) {
-                realsense.EnhancedPhotography.enhanceDepth(
-                    photo, 'high').then(
+        realsense.EnhancedPhotography.enhanceDepth(
+            photo, 'high').then( function(photo) {
+                realsense.EnhancedPhotography.depthResize(
+                    photo, {width: width, height: height}).then(
                         function(photo) {
-                          photo.getColorImage().then(
+                          photo.queryReferenceImage().then(
                               function(colorImage) {
                                 colorCanvasImageData.data.set(colorImage.data);
                                 colorCanvasContext.putImageData(colorCanvasImageData, 0, 0);
-                                photo.getDepthImage().then(
+                                console.log('color image: ' + colorImage.width + ', ' + colorImage.height);
+                                photo.queryDepthImage().then(
                                     function(depthImage) {
+                                      console.log('depth image: ' + depthImage.width + ', ' + depthImage.height);
                                       ConvertDepthToRGBUsingHistogram(
-                                          width*height, depthImage.data, [0, 0, 0], [255, 255, 255], depthCanvasImageData.data);
+                                          depthImage, [0, 0, 0], [255, 255, 255], depthCanvasImageData.data);
                                       depthCanvasContext.putImageData(depthCanvasImageData, 0, 0);
                                       _this.opened.imageSource = colorCanvas.toDataURL("image/jpeg", 1.0);
                                       _this.opened.depthSource = depthCanvas.toDataURL("image/jpeg", 1.0);

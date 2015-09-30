@@ -21,7 +21,7 @@ angular.module('depthyApp')
       preview_data = preview_context.createImageData(width, height);
       ep = realsense.EnhancedPhotography;
       ep.startPreview({colorWidth:640, colorHeight:480,
-                       depthWidth:320, depthHeight:240, framerate: 30.0
+                       depthWidth:320, depthHeight:240, framerate: 60.0
       }).then(function(e) { console.log(e); },
                              function(e) { console.log(e); });
       ep.onpreview = function(e) {
@@ -47,10 +47,10 @@ angular.module('depthyApp')
         ep.takeSnapShot().then(
           function(photo) {
             takenPhoto = photo;
-            takenPhoto.getColorImage().then(
+            takenPhoto.queryReferenceImage().then(
                 function(image) {
                   preview_data.data.set(image.data);
-                  preview_context.putImageData(image_data, 0, 0);
+                  preview_context.putImageData(preview_data, 0, 0);
                 },
                 function(e) { statusElement.innerHTML += e; });},
           function(e) { statusElement.innerHTML += e; });
